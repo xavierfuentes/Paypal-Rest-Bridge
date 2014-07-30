@@ -1,0 +1,66 @@
+// REST PayPal API
+// use PayPal\Api\Payer;
+// use PayPal\Api\Details;
+// use PayPal\Api\Amount;
+// use PayPal\Api\Transaction;
+// use PayPal\Api\RedirectUrls;
+// use PayPal\Api\Payment;
+
+
+/**
+ * Holds the PayPal Bridge
+ */
+protected $paypalBridge;
+
+
+public function __construct($paypalBridge)
+{
+    $this->paypalBridge = $paypalBridge;
+}
+
+/**
+ * @return Url
+ */
+public function payWithPayPal(Contribution $contribution)
+{
+    $paypal = $this->paypalBridge;
+    $serviceMode = array('mode' => $paypal->getApiContext()->getConfig()['service.Mode']);
+    $accessToken = $paypal->getApiContext()->getCredential()->getAccessToken($serviceMode);
+
+    $payer = new Payer();
+    $payer->setPayment_method('paypal');
+
+    $amountDetails = new Details();
+    $amountDetails->setSubtotal( $contribution->getSubtotal() );
+    $variableTax = $contribution->getSubtotal() * 5 / 100;
+    $fixedTax = 0.50;
+    $amountDetails->setTax( $variableTax + $fixedTax ); // 5% + 0,50
+
+    $amount = new Amount();
+    $amount->setCurrency( $contribution->getCurrency() );
+    $amount->setTotal( $contribution->getSubtotal() + $fixedTax + $variableTax );
+    $amount->setDetails( $amountDetails );
+
+    $contribution->setTotal( $amount->getTotal() );
+
+    $transaction = new Transaction();
+    $transaction->setAmount( $amount );
+    $transaction->setDescription( $contribution->getDescription() );
+
+    $redirectUrls = new RedirectUrls();
+    $redirectUrls->setCancelUrl( $contribution->getCancelUrl() );
+    $redirectUrls->setReturnUrl( $contribution->getReturnUrl() );
+
+    $payment = new Payment();
+    $payment->setIntent( 'sale' );
+    $payment->setPayer( $payer );
+    $payment->setTransactions( array($transaction) );
+    $payment->setRedirectUrls( $redirectUrls );
+
+    $response = $payment->create( $paypal->getApiContext() );
+
+    // api bug: if you don't append &useraction=commit to the URL it doesn't work. (PHP at least...)
+    $approval_url = $response->getLinks()[1]->getHref() . '&useraction=commit';
+
+    return $approval_url;
+}

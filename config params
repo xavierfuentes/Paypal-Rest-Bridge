@@ -1,0 +1,23 @@
+# config.yml
+# xavifuefer_pay_pal_bridge:
+#     logs:
+#         enabled: true
+#         filename: %kernel.root_dir%/logs/paypal.log
+#         level: FINE
+#     http:
+#         timeout: 30
+#         retry: true
+
+# config_dev.yml
+# xavifuefer_pay_pal_bridge:
+#     environment: sandbox
+#     sandbox:
+#         clientId: clientIdHash
+#         secret: clientSecret
+
+# config_prod.yml
+# xavifuefer_pay_pal_bridge:
+#     environment: production
+#     production:
+#         clientId: clientIdHash
+#         secret: ClientSecret

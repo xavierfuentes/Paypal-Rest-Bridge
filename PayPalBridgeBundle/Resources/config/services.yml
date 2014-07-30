@@ -1,0 +1,7 @@
+parameters:
+   xavifuefer.paypalbridge.class: Xavifuefer\PayPalBridgeBundle\Service\BridgeService
+
+services:
+   xavifuefer.paypalbridge:
+       class: %xavifuefer.paypalbridge.class%
+       arguments: [%xavifuefer.paypalbridge.parameters%]
